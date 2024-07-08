@@ -11,10 +11,10 @@
 		@click.prevent.stop="toggleEnabled"
 		@update:menuOpen="actionsMenuOpen = $event">
 		<template #icon>
-			<CheckboxBlankCircle v-if="calendar.enabled"
+			<CheckboxMarked v-if="calendar.enabled"
 				:size="20"
 				:fill-color="calendar.color" />
-			<CheckboxBlankCircleOutline v-else
+			<CheckboxBlank v-else
 				:size="20"
 				:fill-color="calendar.color" />
 		</template>
@@ -82,8 +82,8 @@ import {
 	NcActionCaption,
 } from '@nextcloud/vue'
 import { showError } from '@nextcloud/dialogs'
-import CheckboxBlankCircle from 'vue-material-design-icons/CheckboxBlankCircle.vue'
-import CheckboxBlankCircleOutline from 'vue-material-design-icons/CheckboxBlankCircleOutline.vue'
+import CheckboxMarked from 'vue-material-design-icons/CheckboxMarked.vue'
+import CheckboxBlank from 'vue-material-design-icons/CheckboxBlankOutline.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Undo from 'vue-material-design-icons/Undo.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
@@ -97,8 +97,8 @@ export default {
 		NcAvatar,
 		ActionButton,
 		AppNavigationItem,
-		CheckboxBlankCircle,
-		CheckboxBlankCircleOutline,
+		CheckboxMarked,
+		CheckboxBlank,
 		Pencil,
 		Undo,
 		LinkVariant,

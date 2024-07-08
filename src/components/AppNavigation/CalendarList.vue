@@ -9,14 +9,65 @@
 		v-bind="{swapThreshold: 0.30, delay: 500, delayOnTouchOnly: true, touchStartThreshold: 3}"
 		draggable=".draggable-calendar-list-item"
 		@update="update">
+		<CalendarListNew />
 		<template v-if="!isPublic">
-			<CalendarListItem v-for="calendar in calendars"
+			<CalendarListItem v-for="calendar in sortedCalendars.personal"
 				:key="calendar.id"
 				class="draggable-calendar-list-item"
 				:calendar="calendar" />
 		</template>
 		<template v-else>
-			<PublicCalendarListItem v-for="calendar in calendars"
+			<PublicCalendarListItem v-for="calendar in sortedCalendars.personal"
+				:key="calendar.id"
+				:calendar="calendar" />
+		</template>
+
+		<NcAppNavigationCaption :name="$t('calendar', 'Shared calendars')" />
+		<template v-if="!isPublic">
+			<CalendarListItem v-for="calendar in sortedCalendars.shared"
+				:key="calendar.id"
+				class="draggable-calendar-list-item"
+				:calendar="calendar" />
+		</template>
+		<template v-else>
+			<PublicCalendarListItem v-for="calendar in sortedCalendars.shared"
+				:key="calendar.id"
+				:calendar="calendar" />
+		</template>
+
+		<NcAppNavigationCaption :name="$t('calendar', 'Deck')" />
+		<template v-if="!isPublic">
+			<CalendarListItem v-for="calendar in sortedCalendars.deck"
+				:key="calendar.id"
+				class="draggable-calendar-list-item"
+				:calendar="calendar" />
+		</template>
+		<template v-else>
+			<PublicCalendarListItem v-for="calendar in sortedCalendars.deck"
+				:key="calendar.id"
+				:calendar="calendar" />
+		</template>
+
+		<NcListItem :name="$t('calendar', 'Hidden')" @click="showHidden = !showHidden">
+			<template #icon>
+				<CalendarMinus :size="20" />
+			</template>
+			<template #details>
+				<MenuUp v-if="showHidden" :size="20" />
+				<MenuDown v-else :size="20" />
+			</template>
+		</NcListItem>
+
+		<template v-if="!isPublic">
+			<CalendarListItem v-for="calendar in sortedCalendars.hidden"
+				v-show="showHidden"
+				:key="calendar.id"
+				class="draggable-calendar-list-item"
+				:calendar="calendar" />
+		</template>
+		<template v-else>
+			<PublicCalendarListItem v-for="calendar in sortedCalendars.hidden"
+				v-show="showHidden"
 				:key="calendar.id"
 				:calendar="calendar" />
 		</template>
@@ -28,9 +79,14 @@
 </template>
 
 <script>
+import { NcAppNavigationCaption, NcListItem } from '@nextcloud/vue'
 import CalendarListItem from './CalendarList/CalendarListItem.vue'
+import CalendarListNew from './CalendarList/CalendarListNew.vue'
 import PublicCalendarListItem from './CalendarList/PublicCalendarListItem.vue'
 import CalendarListItemLoadingPlaceholder from './CalendarList/CalendarListItemLoadingPlaceholder.vue'
+import MenuDown from 'vue-material-design-icons/ChevronDown.vue'
+import MenuUp from 'vue-material-design-icons/ChevronUp.vue'
+import CalendarMinus from 'vue-material-design-icons/CalendarMinus.vue'
 import draggable from 'vuedraggable'
 import debounce from 'debounce'
 import { showError } from '@nextcloud/dialogs'
@@ -44,9 +100,15 @@ export default {
 	name: 'CalendarList',
 	components: {
 		CalendarListItem,
+		CalendarListNew,
 		CalendarListItemLoadingPlaceholder,
 		PublicCalendarListItem,
 		draggable,
+		NcAppNavigationCaption,
+		NcListItem,
+		MenuDown,
+		MenuUp,
+		CalendarMinus,
 	},
 	props: {
 		isPublic: {
@@ -62,6 +124,7 @@ export default {
 		return {
 			calendars: [],
 			disableDragging: false,
+			showHidden: false,
 		}
 	},
 	computed: {
@@ -69,6 +132,40 @@ export default {
 		...mapState(useCalendarsStore, {
 			serverCalendars: 'sortedCalendarsSubscriptions',
 		}),
+		/**
+		 * Calendars sorted by personal, shared, deck, and hidden
+		 *
+		 * @return {Map}
+		 */
+		sortedCalendars() {
+			const sortedCalendars = {
+				personal: [],
+				shared: [],
+				deck: [],
+				hidden: [],
+			}
+
+			this.calendars.forEach((calendar) => {
+				if (calendar.isSharedWithMe) {
+					sortedCalendars.shared.push(calendar)
+					return
+				}
+
+				if (calendar.url.includes('app-generated--deck--board')) {
+					sortedCalendars.deck.push(calendar)
+					return
+				}
+
+				if (!calendar.enabled) {
+					sortedCalendars.hidden.push(calendar)
+					return
+				}
+
+				sortedCalendars.personal.push(calendar)
+			})
+
+			return sortedCalendars
+		},
 		loadingKeyCalendars() {
 			return this._uid + '-loading-placeholder-calendars'
 		},
@@ -99,3 +196,20 @@ export default {
 	},
 }
 </script>
+
+<style scoped>
+:deep(.list-item) {
+	padding: 4px 8px 4px 8px;
+	margin-bottom: 0 !important;
+	margin-top: 20px !important;
+}
+
+:deep(.app-navigation-caption__name) {
+	margin-bottom: 0;
+}
+
+:deep(.list-item-details__details) {
+	margin: 0 !important;
+	margin-right: -1px !important;
+}
+</style>

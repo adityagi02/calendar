@@ -22,7 +22,7 @@
 				:calendar="calendar" />
 		</template>
 
-		<NcAppNavigationCaption :name="$t('calendar', 'Shared calendars')" />
+		<NcAppNavigationCaption :name="$t('calendar', 'Shared calendars')" v-if="sortedCalendars.shared.length"/>
 		<template v-if="!isPublic">
 			<CalendarListItem v-for="calendar in sortedCalendars.shared"
 				:key="calendar.id"
@@ -35,7 +35,7 @@
 				:calendar="calendar" />
 		</template>
 
-		<NcAppNavigationCaption :name="$t('calendar', 'Deck')" />
+		<NcAppNavigationCaption :name="$t('calendar', 'Deck')" v-if="sortedCalendars.deck.length"/>
 		<template v-if="!isPublic">
 			<CalendarListItem v-for="calendar in sortedCalendars.deck"
 				:key="calendar.id"
@@ -48,29 +48,27 @@
 				:calendar="calendar" />
 		</template>
 
-		<NcListItem :name="$t('calendar', 'Hidden')" @click="showHidden = !showHidden">
+		<NcAppNavigationSpacer />
+
+		<NcAppNavigationItem :name="$t('calendar', 'Hidden')" v-if="sortedCalendars.hidden.length" :allowCollapse="true">
 			<template #icon>
 				<CalendarMinus :size="20" />
 			</template>
-			<template #details>
-				<MenuUp v-if="showHidden" :size="20" />
-				<MenuDown v-else :size="20" />
+			<template>
+				<div v-if="!isPublic">
+					<CalendarListItem v-for="calendar in sortedCalendars.hidden"
+					:key="calendar.id"
+					class="draggable-calendar-list-item"
+					:calendar="calendar" />
+				</div>
+				<div v-else>
+					<PublicCalendarListItem v-for="calendar in sortedCalendars.hidden"
+					:key="calendar.id"
+					:calendar="calendar" />
+				</div>
 			</template>
-		</NcListItem>
+		</NcAppNavigationItem>
 
-		<template v-if="!isPublic">
-			<CalendarListItem v-for="calendar in sortedCalendars.hidden"
-				v-show="showHidden"
-				:key="calendar.id"
-				class="draggable-calendar-list-item"
-				:calendar="calendar" />
-		</template>
-		<template v-else>
-			<PublicCalendarListItem v-for="calendar in sortedCalendars.hidden"
-				v-show="showHidden"
-				:key="calendar.id"
-				:calendar="calendar" />
-		</template>
 		<!-- The header slot must be placed here, otherwise vuedraggable adds undefined as item to the array -->
 		<template #footer>
 			<CalendarListItemLoadingPlaceholder v-if="loadingCalendars" />
@@ -79,7 +77,7 @@
 </template>
 
 <script>
-import { NcAppNavigationCaption, NcListItem } from '@nextcloud/vue'
+import { NcAppNavigationCaption, NcListItem, NcAppNavigationItem, NcAppNavigationSpacer } from '@nextcloud/vue'
 import CalendarListItem from './CalendarList/CalendarListItem.vue'
 import CalendarListNew from './CalendarList/CalendarListNew.vue'
 import PublicCalendarListItem from './CalendarList/PublicCalendarListItem.vue'
@@ -106,6 +104,8 @@ export default {
 		draggable,
 		NcAppNavigationCaption,
 		NcListItem,
+		NcAppNavigationItem,
+		NcAppNavigationSpacer,
 		MenuDown,
 		MenuUp,
 		CalendarMinus,
@@ -124,7 +124,6 @@ export default {
 		return {
 			calendars: [],
 			disableDragging: false,
-			showHidden: false,
 		}
 	},
 	computed: {
@@ -146,6 +145,7 @@ export default {
 			}
 
 			this.calendars.forEach((calendar) => {
+				console.log(calendar.displayName)
 				if (calendar.isSharedWithMe) {
 					sortedCalendars.shared.push(calendar)
 					return
@@ -196,20 +196,3 @@ export default {
 	},
 }
 </script>
-
-<style scoped>
-:deep(.list-item) {
-	padding: 4px 8px 4px 8px;
-	margin-bottom: 0 !important;
-	margin-top: 20px !important;
-}
-
-:deep(.app-navigation-caption__name) {
-	margin-bottom: 0;
-}
-
-:deep(.list-item-details__details) {
-	margin: 0 !important;
-	margin-right: -1px !important;
-}
-</style>

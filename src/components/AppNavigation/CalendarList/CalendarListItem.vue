@@ -6,7 +6,7 @@
 <template>
 	<AppNavigationItem :loading="calendar.loading"
 		:aria-description="descriptionAppNavigationItem"
-		:name="calendar.displayName || $t('calendar', 'Untitled calendar')"
+		:name="calendarDisplayName || $t('calendar', 'Untitled calendar')"
 		:class="{deleted: isBeingDeleted, disabled: !calendar.enabled}"
 		@click.prevent.stop="toggleEnabled"
 		@update:menuOpen="actionsMenuOpen = $event">
@@ -204,6 +204,14 @@ export default {
 		 */
 		countdown() {
 			return this.calendar.countdown
+		},
+
+		calendarDisplayName() {
+			if (this.calendar.displayName.substring(0, 5) === 'Deck:') {
+				return this.calendar.displayName.substring(5)
+			} else {
+				return this.calendar.displayName
+			}
 		},
 	},
 	methods: {
